@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import datetime
+import argparse
 
 ################
 # File Classes #
@@ -1492,18 +1493,59 @@ class Pattern:
 
 	def __len__ (self):
 		return self.length
+	
+## Execute main program	
+		
+def main():
+	start_time = time.time()
+	
+	# default walues
+	allowed_mismatch = 1
+	min_DR = 23
+	max_DR = 55
+	min_spacer_DR_ratio = 0.6
+	max_spacer_DR_ratio = 2.5
+	max_mismatch = 1
+	window_size = 200
+	
+	parse_opts = argparse.ArgumentParser()
+	parse_opts.add_argument("sequence", help="Sequence in .fasta format to analyze for CRISPRs.", type=str)
+	parse_opts.add_argument("savedir", help="Directory where results will be stored.", type=str)
+	parse_opts.add_argument("--mindr", help="Sets minimum length of DR allowed. Default is 23.", type = int)
+	parse_opts.add_argument("--maxdr", help="Sets maximum length of DR allowed. Default is 55.", type = int)
+	parse_opts.add_argument("--minsp", help="Sets minimum ratio of spacer/DR length allowed. Default is 0.6.", type = float)
+	parse_opts.add_argument("--maxsp", help="Sets maximum length of spacer/DR length allowed. Default is 2.5.", type = float)
+	parse_opts.add_argument("--mismatch", help="Sets maximum number of average mismatch number per DR. Default is 1.", type = int)
+	parse_opts.add_argument("--window", help="Sets maximum length of a searching window. Default is 200.", type = int)
+	argus = parse_opts.parse_args()
+	if argus.mindr is not None:
+		min_DR = argus.mindr
+		
+	if argus.maxdr is not None:
+		max_DR = argus.maxdr
+		
+	if argus.minsp is not None:
+		min_spacer_DR_ratio = argus.minsp
+		
+	if argus.maxsp is not None:
+		min_DR = argus.maxsp
+		
+	if argus.mismatch is not None:		
+		max_mismatch = argus.mismatch
+		
+	if argus.window is not None:	
+		window_size = argus.window
+	
+	print(argus.sequence, argus.savedir, window_size, max_mismatch, min_DR, max_DR, min_spacer_DR_ratio, max_spacer_DR_ratio)
+	
+	findCRISPRs = FindCRISPRs(argus.sequence, argus.savedir, 3, "####_####", window_size, max_mismatch, 20, min_DR, max_DR, min_spacer_DR_ratio, max_spacer_DR_ratio, 200, False)
+	findCRISPRs.analyze()
+	
+	print("--- %s seconds ---" % (time.time() - start_time))
 
-# allows to change SOME attributes as well as defines default values
-#class Interface:
-#	def __init__ (self, file_loc, output_loc, ):
+#######################
+# RUN MAIN   ########
+###################
 
-# ----------------- Test ------------------
-
-start_time = time.time()
-file_loc = sys.argv[1]
-output_loc = sys.argv[2]
-# file_path, output_path, k_mer_size_filter, pattern, window_size, allowed_mismatch, spacer_dr_match_limit, min_DR, max_DR, min_spacer_DR_ratio, max_spacer_DR_ratio, first_pass_limit):
-findCRISPRs = FindCRISPRs(file_loc, output_loc, 3, "####_####", 200, 1, 20, 23, 55, 0.6, 2.5, 200, False)
-findCRISPRs.analyze()
-print("--- %s seconds ---" % (time.time() - start_time))
+main()
 
